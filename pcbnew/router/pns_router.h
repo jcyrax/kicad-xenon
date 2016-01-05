@@ -99,6 +99,7 @@ public:
     void SyncWorld();
 
     void SetView( KIGFX::VIEW* aView );
+    KIGFX::VIEW* GetView() { return m_view; }
 
     bool RoutingInProgress() const;
     bool StartRouting( const VECTOR2I& aP, PNS_ITEM* aItem, int aLayer );

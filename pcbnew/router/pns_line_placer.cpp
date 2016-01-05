@@ -34,6 +34,8 @@
 #include "pns_topology.h"
 
 #include <class_board_item.h>
+#include <class_board.h>
+#include <painter.h>
 
 using boost::optional;
 
@@ -745,13 +747,19 @@ bool PNS_LINE_PLACER::Start( const VECTOR2I& aP, PNS_ITEM* aStartItem )
 
     bool splitSeg = false;
 
-    if( Router()->SnappingEnabled() )
-        p = Router()->SnapToItem( aStartItem, aP, splitSeg );
-
     if( !aStartItem || aStartItem->Net() < 0 )
-        net = unknowNetIdx--;
+    {
+        // If started routing without PNS_ITEM use last or current highlited net code
+        if(Router()->GetView()->GetPainter()->GetSettings()->IsHighlightEnabled())
+        {
+            unknowNetIdx = Router()->GetView()->GetPainter()->GetSettings()->GetHighlightNetCode();
+        }
+        net = unknowNetIdx;
+    }
     else
+    {
         net = aStartItem->Net();
+    }
 
     m_currentStart = p;
     m_currentEnd = p;
