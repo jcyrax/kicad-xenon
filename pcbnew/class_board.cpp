@@ -58,6 +58,7 @@
 #include <class_pcb_text.h>
 #include <class_mire.h>
 #include <class_dimension.h>
+#include <class_text_mod.h>
 
 
 /* This is an odd place for this, but CvPcb won't link if it is
@@ -2538,6 +2539,38 @@ void BOARD::ReplaceNetlist( NETLIST& aNetlist, bool aDeleteSinglePadNets,
             }
         }
     }
+
+    // Update custom footprint text fields that contain special vars with reference or value
+    msg.Printf( _( "Changing special vars to netlist values ($$Ref to reference and $$Val to value)\n" ) );
+    aReporter->Report( msg, REPORTER::RPT_INFO );
+
+    int refs = 0;
+    int values = 0;
+    if( !aNetlist.IsDryRun() )
+    {
+        BOARD_ITEM* graphic_item = footprint->GraphicalItems().GetFirst();
+        while( graphic_item != NULL )
+        {
+            if( graphic_item->Type() == PCB_MODULE_TEXT_T )
+            {
+                // User text field
+                TEXTE_MODULE* footprint_text = static_cast<TEXTE_MODULE*>( graphic_item );
+                if( footprint_text->GetText() == _("$$Ref") )
+                {
+                    refs++;
+                    footprint_text->SetText( footprint->GetReference() );
+                }
+                if( footprint_text->GetText() == _("$$Val") )
+                {
+                    values++;
+                    footprint_text->SetText( footprint->GetValue() );
+                }
+            }
+            graphic_item = graphic_item->Next();
+        }
+    }
+    msg.Printf( _( "Changed %d to reference and %d to component value\n" ), refs, values );
+    aReporter->Report( msg, REPORTER::RPT_ACTION );
 
     // We need the pad list, for next tests.
     // padlist is the list of pads, sorted by netname.
