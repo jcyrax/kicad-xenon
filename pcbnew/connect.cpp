@@ -863,13 +863,18 @@ void PCB_BASE_FRAME::RecalculateAllTracksNetcode()
     // Reset variables and flags used in computation
     for( TRACK* t = m_Pcb->m_Track;  t;  t = t->Next() )
     {
-        t->m_TracksConnected.clear();
-        t->m_PadsConnected.clear();
-        t->start = NULL;
-        t->end = NULL;
-        t->SetState( BUSY | IN_EDIT | BEGIN_ONPAD | END_ONPAD, false );
-        t->SetZoneSubNet( 0 );
-        t->SetNetCode( NETINFO_LIST::UNCONNECTED );
+        // For free standing VIAs preserve data (netcode)
+        if( t->Type() != PCB_VIA_T || t->m_TracksConnected.size() != 0 ||
+            t->m_PadsConnected.size() != 0)
+        {
+            t->m_TracksConnected.clear();
+            t->m_PadsConnected.clear();
+            t->start = NULL;
+            t->end = NULL;
+            t->SetState( BUSY | IN_EDIT | BEGIN_ONPAD | END_ONPAD, false );
+            t->SetZoneSubNet( 0 );
+            t->SetNetCode( NETINFO_LIST::UNCONNECTED );
+        }
     }
 
     // If no pad, reset pointers and netcode, and do nothing else
